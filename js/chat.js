@@ -62,12 +62,8 @@ Instruksi:
         const fullPrompt = systemContext + '\n\nPertanyaan pengguna: ' + userMessage;
 
         try {
-            // Send request to backend endpoint
-            const endpoint = (window.location.port === '3000' || window.location.origin.includes('localhost:3000'))
-                ? '/api/ask-gemini'
-                : 'http://localhost:3000/api/ask-gemini';
-
-            const response = await fetch(endpoint, {
+            // Use the active origin so local and deployed frontend share the same backend.
+            const response = await fetch('/api/ask-gemini', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -94,7 +90,7 @@ Instruksi:
             console.error('Gemini Backend Request Error:', error);
             const errorMsg = this.store.addChatMessage(
                 'assistant',
-                `⚠️ *Pesan dari AI*: Gagal menghubungi backend (${error.message}). Pastikan server backend Node.js berjalan di port 3000 (jalankan \`npm start\`) dan file .env memiliki \`GEMINI_API_KEY\`.`
+                `⚠️ *Pesan dari AI*: Gagal menghubungi backend (${error.message}). Pastikan endpoint API tersedia dan konfigurasi \`GEMINI_API_KEY\` sudah diatur.`
             );
             this.isLoading = false;
             if (sendBtn) sendBtn.disabled = false;
