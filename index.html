@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="cyber-glass">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChronoQuest OS — Gamified Daily Activity Tracker</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS (Browser Version for Vanilla JS) -->
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+<body class="bg-base text-slate-100 min-h-screen flex flex-col md:flex-row overflow-x-hidden selection:bg-cyan-500/30 selection:text-cyan-200">
+
+    <!-- Audio Ambient & FX Generator will be initialized via Web Audio API in JS -->
+
+    <!-- Mobile Top Navigation -->
+    <header class="md:hidden glass-nav border-b border-white/10 sticky top-0 z-40 px-4 py-3 flex justify-between items-center bg-black/40 backdrop-blur-xl">
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-cyan-500/25">
+                <i data-lucide="zap" class="w-5 h-5 text-white"></i>
+            </div>
+            <div>
+                <h1 class="font-display font-bold text-lg leading-tight tracking-tight">Chrono<span class="text-gradient-neon">Quest</span></h1>
+                <p class="text-[10px] text-slate-400 font-mono">WIB (Asia/Jakarta)</p>
+            </div>
+        </div>
+        
+        <div class="flex items-center gap-2">
+            <button id="btnSoundMobile" class="p-2 rounded-xl glass-btn text-slate-300 hover:text-cyan-400">
+                <i data-lucide="volume-2" class="w-4 h-4"></i>
+            </button>
+            <button id="mobileMenuBtn" class="p-2 rounded-xl glass-btn text-slate-300 hover:text-white">
+                <i data-lucide="menu" class="w-5 h-5"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Sidebar Navigation -->
+    <aside id="sidebar" class="fixed md:static inset-y-0 left-0 z-50 w-72 glass-sidebar border-r border-white/10 transform -translate-x-full md:translate-x-0 transition-transform duration-300 flex flex-col justify-between bg-black/50 md:bg-black/30 backdrop-blur-2xl">
+        <div>
+            <!-- App Branding -->
+            <div class="p-6 pb-4 flex items-center justify-between border-b border-white/5">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 via-indigo-500 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-cyan-500/30 ring-1 ring-white/20">
+                        <i data-lucide="compass" class="w-6 h-6 text-white animate-spin-slow"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-display font-extrabold text-xl tracking-tight text-white flex items-center gap-1.5">
+                            Chrono<span class="text-gradient-neon">Quest</span>
+                            <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">OS</span>
+                        </h1>
+                        <p class="text-[11px] text-slate-400 font-mono">Zone: Asia/Jakarta</p>
+                    </div>
+                </div>
+                <button id="closeSidebarBtn" class="md:hidden p-2 rounded-lg text-slate-400 hover:text-white glass-btn">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Profile & Level Banner -->
+            <div class="p-4 mx-4 my-4 rounded-2xl glass-card border border-white/10 relative overflow-hidden group cursor-pointer" id="btnOpenProfile">
+                <div class="absolute -right-8 -top-8 w-28 h-28 bg-cyan-500/15 rounded-full blur-2xl group-hover:bg-cyan-500/25 transition-all"></div>
+                <div class="flex items-center gap-3.5 relative z-10">
+                    <div class="relative">
+                        <div class="w-13 h-13 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-950 border border-cyan-500/40 flex items-center justify-center text-2xl shadow-inner shadow-cyan-500/20" id="userAvatar">
+                            ⚡
+                        </div>
+                        <span class="absolute -bottom-1.5 -right-1.5 text-[10px] font-bold font-mono px-1.5 py-0.2 rounded-full bg-cyan-500 text-black shadow-md" id="userLevelPill">Lv.1</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h4 class="text-sm font-bold text-white truncate group-hover:text-cyan-300 transition-colors" id="userName">Time Adventurer</h4>
+                        <p class="text-xs text-cyan-400 font-medium truncate" id="userTitle">Chronos Initiate</p>
+                        <div class="flex items-center gap-1.5 mt-1 text-[11px] text-amber-400 font-medium">
+                            <i data-lucide="flame" id="sidebarStreakFire" class="streak-fire w-3.5 h-3.5 text-amber-400 fill-amber-400 is-cold"></i>
+                            <span id="sidebarStreakText">0 Hari Streak</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Tabs -->
+            <nav class="px-4 space-y-1.5">
+                <button class="nav-tab active w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all" data-target="tab-dashboard">
+                    <i data-lucide="layout-grid" class="w-5 h-5"></i>
+                    <span>Dashboard</span>
+                </button>
+                <button class="nav-tab w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-200 hover:bg-white/5 transition-all" data-target="tab-quests">
+                    <i data-lucide="swords" class="w-5 h-5"></i>
+                    <span>Quest Hub</span>
+                    <span class="ml-auto text-xs px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-mono" id="navQuestCount">0</span>
+                </button>
+                <button class="nav-tab w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-200 hover:bg-white/5 transition-all" data-target="tab-stats">
+                    <i data-lucide="trending-up" class="w-5 h-5"></i>
+                    <span>Statistik & History</span>
+                </button>
+                <button class="nav-tab w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-200 hover:bg-white/5 transition-all" data-target="tab-savings">
+                    <i data-lucide="piggy-bank" class="w-5 h-5"></i>
+                    <span>Tabungan</span>
+                </button>
+                <button class="nav-tab w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-200 hover:bg-white/5 transition-all" data-target="tab-cosmetics">
+                    <i data-lucide="sparkles" class="w-5 h-5"></i>
+                    <span>Koleksi & Badges</span>
+                </button>
+            </nav>
+        </div>
+
+        <!-- Sidebar Bottom Controls -->
+        <div class="p-4 border-t border-white/5 space-y-3">
+            <!-- Theme Selector Dropdown Trigger -->
+            <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2">
+                    <button id="btnSoundToggle" class="p-2.5 rounded-xl glass-btn text-slate-300 hover:text-cyan-400 transition-colors" title="Toggle Sound Effects">
+                        <i data-lucide="volume-2" id="soundIcon" class="w-4 h-4"></i>
+                    </button>
+                    <div class="relative flex-1">
+                        <select id="themeSelector" class="w-full bg-slate-900/80 border border-white/10 text-xs text-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-cyan-500 appearance-none cursor-pointer">
+                            <option value="cyber-glass">🌌 Cyber Glass</option>
+                            <option value="obsidian">🖤 Obsidian Velvet</option>
+                            <option value="sunset">🌅 Sunset Amber</option>
+                            <option value="ethereal">💎 Ethereal Light</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Current Time & Jakarta Clock -->
+            <div class="px-3 py-2 rounded-xl bg-white/[0.02] border border-white/5 flex items-center justify-between text-[11px] font-mono text-slate-400">
+                <div class="flex items-center gap-1.5">
+                    <i data-lucide="clock" class="w-3.5 h-3.5 text-cyan-400"></i>
+                    <span id="liveJakartaTime">00:00:00 WIB</span>
+                </div>
+                <span class="text-emerald-400 flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span> Sync
+                </span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Mobile Overlay -->
+    <div id="sidebarOverlay" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 hidden md:hidden transition-opacity"></div>
+
+    <!-- Main Workspace -->
+    <main class="flex-1 flex flex-col h-screen overflow-y-auto relative pb-20 md:pb-8">
+        
+        <!-- ==================== TAB 1: DASHBOARD ==================== -->
+        <section id="tab-dashboard" class="tab-content active p-4 md:p-8 max-w-6xl w-full mx-auto space-y-6">
+            
+            <!-- Greeting & Quick Actions Banner -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 glass-card p-6 md:p-8 rounded-3xl border border-white/10 relative overflow-hidden">
+                <div class="absolute -right-20 -top-20 w-64 h-64 bg-gradient-to-bl from-cyan-500/20 via-indigo-500/10 to-transparent rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="px-2.5 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-mono font-medium flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
+                            Waktu Indonesia Barat (WIB)
+                        </span>
+                    </div>
+                    <h2 class="font-display font-extrabold text-2xl md:text-4xl text-white tracking-tight" id="greetingMessage">
+                        Siap Menaklukan Hari Ini?
+                    </h2>
+                    <p class="text-slate-400 text-sm mt-1" id="currentDateFull">Memuat waktu...</p>
+                </div>
+
+                <div class="flex items-center gap-3 relative z-10">
+                    <button id="btnOpenNewQuestModal" class="btn-neon-glow flex items-center gap-2.5 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-cyan-500 to-indigo-600 text-white font-bold shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 transform hover:-translate-y-0.5 active:translate-y-0 transition-all">
+                        <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                        <span>Quest Baru</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Gamification Status Cards Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                
+                <!-- Card 1: Level & EXP Progress -->
+                <div class="glass-card p-6 rounded-3xl border border-white/10 md:col-span-2 relative overflow-hidden flex flex-col justify-between">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <span class="text-xs uppercase tracking-wider text-slate-400 font-mono">Status Karakter</span>
+                            <div class="flex items-center gap-3 mt-1">
+                                <h3 class="font-display font-bold text-2xl text-white">Level <span id="dashLevelNumber">1</span></h3>
+                                <span class="px-2.5 py-0.5 rounded-lg bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-xs font-semibold" id="dashTitleBadge">Novice Tracker</span>
+                            </div>
+                        </div>
+                        <div class="text-right font-mono">
+                            <span class="text-2xl font-bold text-cyan-400" id="dashCurrentExp">0</span>
+                            <span class="text-slate-500 text-sm">/ <span id="dashNextExp">100</span> XP</span>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar Container -->
+                    <div class="space-y-2">
+                        <div class="h-3.5 w-full bg-slate-900/80 rounded-full p-0.5 border border-white/10 overflow-hidden">
+                            <div id="dashExpBar" class="h-full bg-gradient-to-r from-cyan-400 via-indigo-500 to-fuchsia-500 rounded-full transition-all duration-700 ease-out shadow-[0_0_12px_rgba(6,182,212,0.6)]" style="width: 0%;"></div>
+                        </div>
+                        <div class="flex justify-between text-xs text-slate-400 font-mono">
+                            <span id="dashExpRemaining">100 XP menuju Level 2</span>
+                            <span id="dashExpPercentage">0%</span>
+                        </div>
+                    </div>
+
+                    <!-- Multiplier & Streak Perks Footer -->
+                    <div class="mt-5 pt-4 border-t border-white/5 flex flex-wrap items-center justify-between gap-3 text-xs">
+                        <div class="flex items-center gap-2 text-amber-400 font-semibold">
+                            <i data-lucide="zap" class="w-4 h-4"></i>
+                            <span>Multiplier: <span id="dashMultiplierBadge">1.0x</span></span>
+                        </div>
+                        <div class="flex items-center gap-2 text-cyan-300">
+                            <i data-lucide="shield-check" class="w-4 h-4"></i>
+                            <span>Daily Reset: <span class="font-mono">00:00 WIB</span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2: Today's Activity Circle -->
+                <div class="glass-card p-6 rounded-3xl border border-white/10 flex flex-col items-center justify-between text-center relative">
+                    <div class="w-full flex justify-between items-center text-xs text-slate-400 font-mono mb-2">
+                        <span>ACTIVITY CIRCLE</span>
+                        <span id="todayCompletionBadge" class="text-cyan-400 font-bold">0%</span>
+                    </div>
+
+                    <!-- Circular Progress Ring -->
+                    <div class="relative w-36 h-36 flex items-center justify-center my-2">
+                        <svg class="w-full h-full transform -rotate-90" viewBox="0 0 120 120">
+                            <!-- Background Circle -->
+                            <circle cx="60" cy="60" r="50" class="stroke-slate-800/80" stroke-width="10" fill="transparent" />
+                            <!-- Progress Circle -->
+                            <circle id="dashCircleProgress" cx="60" cy="60" r="50" class="stroke-cyan-400 transition-all duration-1000 ease-out" stroke-width="10" stroke-linecap="round" fill="transparent" stroke-dasharray="314.159" stroke-dashoffset="314.159" style="filter: drop-shadow(0 0 8px rgba(6,182,212,0.6));" />
+                        </svg>
+                        <div class="absolute flex flex-col items-center justify-center">
+                            <span class="text-3xl font-extrabold font-display text-white" id="dashCompletedCount">0</span>
+                            <span class="text-[11px] text-slate-400 font-mono">dari <span id="dashTotalCount">0</span> Quest</span>
+                        </div>
+                    </div>
+
+                    <p class="text-xs text-slate-400 mt-2" id="circleMotivationText">Selesaikan quest hari ini untuk mempertahankan streak!</p>
+                </div>
+
+            </div>
+
+            <!-- Daily Quests Checklist Stream -->
+            <div class="space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+                            <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+                        </div>
+                        <h3 class="font-display font-bold text-xl text-white">Target Quest Hari Ini</h3>
+                    </div>
+                    
+                    <!-- Quick Filters -->
+                    <div class="flex items-center gap-1.5 p-1 rounded-xl bg-slate-900/60 border border-white/5 text-xs">
+                        <button class="quest-filter-btn active px-3 py-1.5 rounded-lg font-medium transition-colors" data-filter="all">Semua</button>
+                        <button class="quest-filter-btn px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-colors" data-filter="pending">Belum Selesai</button>
+                        <button class="quest-filter-btn px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-colors" data-filter="completed">Selesai</button>
+                    </div>
+                </div>
+
+                <!-- Quest Item Container -->
+                <div id="questListContainer" class="space-y-3">
+                    <!-- Populated dynamically via app.js -->
+                </div>
+            </div>
+
+        </section>
+
+        <!-- ==================== TAB 2: QUEST HUB ==================== -->
+        <section id="tab-quests" class="tab-content hidden p-4 md:p-8 max-w-6xl w-full mx-auto space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h2 class="font-display font-bold text-3xl text-white">Manajemen Quest</h2>
+                    <p class="text-slate-400 text-sm">Atur aktivitas harian, jadwal berulang, dan tingkat kesulitan.</p>
+                </div>
+                <button class="btn-neon-glow flex items-center gap-2 px-5 py-3 rounded-2xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold transition-all" onclick="document.getElementById('btnOpenNewQuestModal').click()">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                    <span>Tambah Quest Baru</span>
+                </button>
+            </div>
+
+            <!-- Categories / Tags Bar -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4" id="categoryStatsGrid">
+                <!-- Dynamically updated in app.js -->
+            </div>
+
+            <!-- Full Quest Table/Cards -->
+            <div class="glass-card p-6 rounded-3xl border border-white/10 space-y-4">
+                <div class="flex items-center justify-between border-b border-white/10 pb-4">
+                    <h4 class="font-bold text-white text-lg">Daftar Semua Quest Aktif</h4>
+                    <span class="text-xs font-mono text-cyan-400" id="totalActiveQuestsCount">0 Total</span>
+                </div>
+                <div id="fullQuestListContainer" class="space-y-3">
+                    <!-- Injected via JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 3: STATISTIK & HISTORY ==================== -->
+        <section id="tab-stats" class="tab-content hidden p-4 md:p-8 max-w-6xl w-full mx-auto space-y-6">
+            <div>
+                <h2 class="font-display font-bold text-3xl text-white">Statistik & Riwayat</h2>
+                <p class="text-slate-400 text-sm">Analisis produktivitas, log EXP, dan konsistensi streak.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="glass-card p-5 rounded-2xl border border-white/10">
+                    <span class="text-xs text-slate-400 font-mono uppercase">Total XP Diperoleh</span>
+                    <p class="text-2xl font-bold font-mono text-cyan-400 mt-1" id="statTotalExp">0 XP</p>
+                </div>
+                <div class="glass-card p-5 rounded-2xl border border-white/10">
+                    <span class="text-xs text-slate-400 font-mono uppercase">Quest Selesai Sepanjang Masa</span>
+                    <p class="text-2xl font-bold font-mono text-emerald-400 mt-1" id="statTotalCompleted">0</p>
+                </div>
+                <div class="glass-card p-5 rounded-2xl border border-white/10">
+                    <span class="text-xs text-slate-400 font-mono uppercase">Streak Tertinggi</span>
+                    <p class="text-2xl font-bold font-mono text-amber-400 mt-1" id="statBestStreak">0 Hari</p>
+                </div>
+                <div class="glass-card p-5 rounded-2xl border border-white/10">
+                    <span class="text-xs text-slate-400 font-mono uppercase">Tingkat Penyelesaian</span>
+                    <p class="text-2xl font-bold font-mono text-fuchsia-400 mt-1" id="statCompletionRate">0%</p>
+                </div>
+            </div>
+
+            <!-- Activity Log Table -->
+            <div class="glass-card p-6 rounded-3xl border border-white/10 space-y-4">
+                <h4 class="font-bold text-white text-lg">Log Riwayat Penyelesaian</h4>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="text-xs text-slate-400 uppercase font-mono border-b border-white/10">
+                            <tr>
+                                <th class="py-3 px-4">Waktu (WIB)</th>
+                                <th class="py-3 px-4">Nama Quest</th>
+                                <th class="py-3 px-4">Kesulitan</th>
+                                <th class="py-3 px-4">EXP Didapat</th>
+                                <th class="py-3 px-4">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTableBody" class="divide-y divide-white/5 font-mono text-xs">
+                            <!-- Populated in app.js -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 4: TABUNGAN ==================== -->
+        <section id="tab-savings" class="tab-content hidden p-4 md:p-8 max-w-6xl w-full mx-auto space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h2 class="font-display font-bold text-3xl text-emerald-400 text-emerald-glow flex items-center gap-2">
+                        <i data-lucide="piggy-bank" class="w-8 h-8"></i>
+                        Saving Tracker
+                    </h2>
+                    <p class="text-slate-400 text-sm mt-1">Kelola dana darurat dan capai target finansial dengan konsisten.</p>
+                </div>
+                <button id="btnOpenNewSavingModal" class="btn-neon-glow flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold transition-all shadow-emerald-glow">
+                    <i data-lucide="plus" class="w-5 h-5"></i>
+                    <span>Target Tabungan</span>
+                </button>
+            </div>
+
+            <!-- Savings Stats Grid -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="savingsStatsGrid">
+                <div class="glass-card p-5 rounded-2xl border border-emerald-500/20 bg-emerald-500/5">
+                    <span class="text-xs text-slate-400 font-mono uppercase">Total Terkumpul</span>
+                    <p class="text-xl font-bold font-mono text-emerald-400 mt-1" id="statTotalSavings">Rp 0</p>
+                </div>
+                <div class="glass-card p-5 rounded-2xl border border-white/5">
+                    <span class="text-xs text-slate-400 font-mono uppercase">Target Aktif</span>
+                    <p class="text-xl font-bold font-mono text-white mt-1" id="statActiveSavings">0</p>
+                </div>
+            </div>
+
+            <!-- Savings Cards Container -->
+            <div id="savingsListContainer" class="space-y-5">
+                <!-- Injected via app.js -->
+            </div>
+        </section>
+
+        <!-- ==================== TAB 5: KOLEKSI & BADGES ==================== -->
+        <section id="tab-cosmetics" class="tab-content hidden p-4 md:p-8 max-w-6xl w-full mx-auto space-y-6">
+            <div>
+                <h2 class="font-display font-bold text-3xl text-white">Koleksi & Prestasi</h2>
+                <p class="text-slate-400 text-sm">Buka lencana kehormatan, gelar prestisius, dan avatar baru.</p>
+            </div>
+
+            <!-- Badges Grid -->
+            <div class="glass-card p-6 rounded-3xl border border-white/10 space-y-4">
+                <h4 class="font-bold text-white text-lg flex items-center gap-2">
+                    <i data-lucide="award" class="w-5 h-5 text-amber-400"></i>
+                    Lencana Keberhasilan (Badges)
+                </h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4" id="badgesContainer">
+                    <!-- Populated in gamification.js / app.js -->
+                </div>
+            </div>
+
+            <!-- Titles Grid -->
+            <div class="glass-card p-6 rounded-3xl border border-white/10 space-y-4">
+                <h4 class="font-bold text-white text-lg flex items-center gap-2">
+                    <i data-lucide="crown" class="w-5 h-5 text-cyan-400"></i>
+                    Gelar Kehormatan (Titles)
+                </h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4" id="titlesContainer">
+                    <!-- Populated in gamification.js / app.js -->
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ==================== MODAL: ADD / EDIT QUEST ==================== -->
+    <div id="questModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md hidden opacity-0 transition-opacity duration-200">
+        <div class="glass-modal w-full max-w-lg rounded-3xl p-6 md:p-8 border border-white/15 shadow-2xl relative">
+            <div class="flex items-center justify-between border-b border-white/10 pb-4 mb-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center">
+                        <i data-lucide="scroll" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-display font-bold text-xl text-white" id="modalTitle">Buat Quest Baru</h3>
+                        <p class="text-xs text-slate-400">Tentukan target aktivitas harianmu.</p>
+                    </div>
+                </div>
+                <button id="closeQuestModalBtn" class="p-2 rounded-xl text-slate-400 hover:text-white glass-btn">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <form id="questForm" class="space-y-4">
+                <input type="hidden" id="questIdInput">
+
+                <!-- Quest Title -->
+                <div>
+                    <label class="block text-xs font-mono text-slate-300 uppercase mb-1.5">Judul Quest *</label>
+                    <input type="text" id="questTitleInput" required placeholder="Contoh: Membaca Buku 20 Halaman" class="w-full bg-slate-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500">
+                </div>
+
+                <!-- Description -->
+                <div>
+                    <label class="block text-xs font-mono text-slate-300 uppercase mb-1.5">Deskripsi / Catatan</label>
+                    <textarea id="questDescInput" rows="2" placeholder="Catatan opsional mengenai quest ini..." class="w-full bg-slate-950/80 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"></textarea>
+                </div>
+
+                <!-- Category & Difficulty Row -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-mono text-slate-300 uppercase mb-1.5">Kategori</label>
+                        <select id="questCategoryInput" class="w-full bg-slate-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-500">
+                            <option value="health">🏃 Kesehatan & Olahraga</option>
+                            <option value="learning">📚 Belajar & Edukasi</option>
+                            <option value="work">💼 Pekerjaan & Project</option>
+                            <option value="mindfulness">🧘 Mindfulness & Jiwa</option>
+                            <option value="creative">🎨 Kreativitas</option>
+                            <option value="other">⭐ Rutinitas Lainnya</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-mono text-slate-300 uppercase mb-1.5">Tingkat Kesulitan</label>
+                        <select id="questDifficultyInput" class="w-full bg-slate-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-500 font-mono">
+                            <option value="trivial">🟢 Trivial (+10 XP)</option>
+                            <option value="easy">🔵 Easy (+20 XP)</option>
+                            <option value="medium" selected>🟡 Medium (+30 XP)</option>
+                            <option value="hard">🟠 Hard (+40 XP)</option>
+                            <option value="epic">🟣 Epic (+50 XP)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Due Time (Optional) -->
+                <div>
+                    <label class="block text-xs font-mono text-slate-300 uppercase mb-1.5">Target Waktu Penyelesaian (WIB)</label>
+                    <input type="time" id="questTimeInput" class="w-full bg-slate-950/80 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500 font-mono">
+                </div>
+
+                <!-- Submit Buttons -->
+                <div class="pt-4 flex items-center justify-end gap-3 border-t border-white/10">
+                    <button type="button" id="cancelQuestBtn" class="px-5 py-2.5 rounded-xl glass-btn text-slate-300 text-sm font-semibold hover:text-white">Batal</button>
+                    <button type="submit" class="btn-neon-glow px-6 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 text-white text-sm font-bold shadow-lg shadow-cyan-500/25">Simpan Quest</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL: ADD / EDIT SAVING ==================== -->
+    <div id="savingModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md hidden opacity-0 transition-opacity duration-200">
+        <div class="glass-modal w-full max-w-lg rounded-3xl p-6 md:p-8 border border-white/15 shadow-2xl relative">
+            <div class="flex items-center justify-between border-b border-white/10 pb-4 mb-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                        <i data-lucide="piggy-bank" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-display font-bold text-xl text-white" id="savingModalTitle">Buat Target Tabungan</h3>
+                        <p class="text-xs text-slate-400">Rencanakan target dan *deadline* dengan disiplin.</p>
+                    </div>
+                </div>
+                <button id="closeSavingModalBtn" class="p-2 rounded-xl text-slate-400 hover:text-white glass-btn">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <form id="savingForm" class="space-y-4">
+                <input type="hidden" id="savingIdInput">
+
+                <div>
+                    <label class="block text-xs font-mono text-slate-300 uppercase mb-1.5">Nama Target *</label>
+                    <input type="text" id="savingTitleInput" required placeholder="Contoh: Dana Darurat, Laptop Baru" class="w-full bg-slate-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-mono text-slate-300 uppercase mb-1.5">Nominal Target (Total) *</label>
+                    <input type="number" id="savingTargetInput" required min="1" placeholder="Misal: 5000000" class="w-full bg-slate-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 font-mono">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-mono text-slate-300 uppercase mb-1.5">Tenggat Waktu (Deadline) *</label>
+                    <input type="date" id="savingDeadlineInput" required class="w-full bg-slate-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-emerald-500 font-mono">
+                </div>
+
+                <div class="pt-4 flex items-center justify-end gap-3 border-t border-white/10">
+                    <button type="button" id="cancelSavingBtn" class="px-5 py-2.5 rounded-xl glass-btn text-slate-300 text-sm font-semibold hover:text-white">Batal</button>
+                    <button type="submit" class="btn-neon-glow px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-sm font-bold shadow-emerald-glow">Simpan Target</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL: ADD DEPOSIT ==================== -->
+    <div id="depositModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md hidden opacity-0 transition-opacity duration-200">
+        <div class="glass-modal w-full max-w-sm rounded-3xl p-6 border border-white/15 shadow-2xl relative">
+            <div class="flex items-center justify-between border-b border-white/10 pb-4 mb-4">
+                <h3 class="font-display font-bold text-lg text-white">Tambah Setoran</h3>
+                <button id="closeDepositModalBtn" class="p-1.5 rounded-xl text-slate-400 hover:text-white glass-btn">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+            <form id="depositForm" class="space-y-4">
+                <input type="hidden" id="depositTargetIdInput">
+                
+                <div>
+                    <label class="block text-xs font-mono text-slate-300 uppercase mb-1.5">Nominal Setoran *</label>
+                    <input type="number" id="depositAmountInput" required min="1" placeholder="Misal: 50000" class="w-full bg-slate-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 font-mono mb-2">
+                    
+                    <div class="grid grid-cols-3 gap-2">
+                        <button type="button" class="btn-instant-deposit px-2 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 text-xs font-bold font-mono transition-colors" data-amount="10000">+10k</button>
+                        <button type="button" class="btn-instant-deposit px-2 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 text-xs font-bold font-mono transition-colors" data-amount="50000">+50k</button>
+                        <button type="button" class="btn-instant-deposit px-2 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 text-xs font-bold font-mono transition-colors" data-amount="100000">+100k</button>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-mono text-slate-300 uppercase mb-1.5">Catatan (Opsional)</label>
+                    <input type="text" id="depositNoteInput" placeholder="Misal: Sisa uang jajan" class="w-full bg-slate-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500">
+                </div>
+                
+                <button type="submit" class="w-full btn-neon-glow py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-sm font-bold shadow-emerald-glow mt-2">Setor Uang</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL: SAVING HISTORY ==================== -->
+    <div id="savingHistoryModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md hidden opacity-0 transition-opacity duration-200">
+        <div class="glass-modal w-full max-w-lg rounded-3xl p-6 border border-white/15 shadow-2xl relative max-h-[80vh] flex flex-col">
+            <div class="flex items-center justify-between border-b border-white/10 pb-4 mb-4">
+                <h3 class="font-display font-bold text-lg text-white" id="historyModalTitle">Riwayat Setoran</h3>
+                <button id="closeHistoryModalBtn" class="p-1.5 rounded-xl text-slate-400 hover:text-white glass-btn">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+            <div class="overflow-y-auto flex-1 pr-2 space-y-3" id="savingHistoryContainer">
+                <!-- Injected via app.js -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL: DELETE CONFIRM (SAVING) ==================== -->
+    <div id="deleteConfirmModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md hidden opacity-0 transition-opacity duration-200">
+        <div class="glass-modal w-full max-w-sm rounded-3xl p-6 border border-red-500/30 shadow-2xl relative text-center">
+            <div class="w-12 h-12 rounded-full bg-red-500/20 text-red-500 mx-auto flex items-center justify-center mb-4">
+                <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+            </div>
+            <h3 class="font-display font-bold text-lg text-white mb-2">Hapus Target Tabungan?</h3>
+            <p class="text-sm text-slate-400 mb-6">Apakah Anda yakin ingin menghapus target ini? Semua riwayat setoran juga akan hilang dan tidak dapat dikembalikan.</p>
+            <input type="hidden" id="deleteTargetIdInput">
+            <div class="flex items-center gap-3">
+                <button id="cancelDeleteBtn" class="flex-1 py-2.5 rounded-xl glass-btn text-slate-300 text-sm font-semibold hover:text-white border border-white/10">Batal</button>
+                <button id="confirmDeleteBtn" class="flex-1 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white text-sm font-bold shadow-lg shadow-red-500/25 transition-colors">Hapus</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL: DELETE CONFIRM (QUEST) ==================== -->
+    <div id="deleteQuestConfirmModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md hidden opacity-0 transition-opacity duration-200">
+        <div class="glass-modal w-full max-w-sm rounded-3xl p-6 border border-red-500/30 shadow-2xl relative text-center">
+            <div class="w-12 h-12 rounded-full bg-red-500/20 text-red-500 mx-auto flex items-center justify-center mb-4">
+                <i data-lucide="trash-2" class="w-6 h-6"></i>
+            </div>
+            <h3 class="font-display font-bold text-lg text-white mb-2">Hapus Quest Ini?</h3>
+            <p class="text-sm text-slate-400 mb-6">Quest ini akan dihapus dari daftar aktivitas harian Anda.</p>
+            <input type="hidden" id="deleteQuestIdInput">
+            <div class="flex items-center gap-3">
+                <button id="cancelDeleteQuestBtn" class="flex-1 py-2.5 rounded-xl glass-btn text-slate-300 text-sm font-semibold hover:text-white border border-white/10">Batal</button>
+                <button id="confirmDeleteQuestBtn" class="flex-1 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white text-sm font-bold shadow-lg shadow-red-500/25 transition-colors">Hapus Quest</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== FLOATING GEMINI AI CHAT ==================== -->
+    
+    <!-- Chat Dialog Box (Fixed separately from button) -->
+    <div id="geminiChatPanel" class="hidden fixed bottom-20 right-4 z-50 glass-modal w-80 sm:w-96 h-[500px] max-h-[80vh] flex flex-col rounded-3xl border border-cyan-500/30 shadow-2xl shadow-cyan-500/10 transition-all duration-300">
+        
+        <!-- Chat Header -->
+        <div class="p-4 border-b border-white/10 flex items-center justify-between bg-gradient-to-r from-cyan-500/15 via-indigo-500/10 to-transparent rounded-t-3xl">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-cyan-500/25">
+                    <i data-lucide="bot" class="w-5 h-5 text-white"></i>
+                </div>
+                <div>
+                    <h4 class="font-display font-bold text-sm text-white flex items-center gap-1.5">
+                        Chrono AI Coach
+                        <span class="text-[9px] font-mono px-1.5 py-0.2 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">Gemini</span>
+                    </h4>
+                    <p class="text-[10px] text-emerald-400 flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Siap Membantu
+                    </p>
+                </div>
+            </div>
+            <div class="flex items-center gap-1">
+                <button id="clearChatBtn" class="p-1.5 rounded-lg text-slate-400 hover:text-white glass-btn cursor-pointer" title="Hapus Chat">
+                    <i data-lucide="trash-2" class="w-3.5 h-3.5 pointer-events-none"></i>
+                </button>
+                <button id="minimizeChatBtn" class="p-1.5 rounded-lg text-slate-400 hover:text-cyan-300 glass-btn cursor-pointer" title="Minimalkan Chat">
+                    <i data-lucide="minus" class="w-4 h-4 pointer-events-none"></i>
+                </button>
+                <button id="closeChatBtn" class="p-1.5 rounded-lg text-slate-400 hover:text-white glass-btn cursor-pointer">
+                    <i data-lucide="x" class="w-4 h-4 pointer-events-none"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Messages Stream Area -->
+        <div id="chatMessages" class="flex-1 overflow-y-auto p-4 space-y-3.5 text-xs scroll-smooth">
+            <!-- Welcome Bot Message -->
+            <div class="flex gap-2.5 max-w-[90%]">
+                <div class="w-7 h-7 rounded-xl bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center flex-shrink-0 mt-0.5 text-cyan-300">
+                    <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+                </div>
+                <div class="glass-card p-3 rounded-2xl rounded-tl-none border-cyan-500/20 text-slate-200 leading-relaxed">
+                    Halo Petualang! Saya asisten AI bertenaga <strong>Gemini</strong>. Butuh saran quest harian, rekomendasi strategi konsistensi, atau motivasi menaikkan level? Tanyakan saja!
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Suggestion Chips -->
+        <div class="px-3 py-1.5 border-t border-white/5 flex gap-1.5 overflow-x-auto no-scrollbar">
+            <button class="chat-chip text-[10px] whitespace-nowrap px-2.5 py-1 rounded-full bg-white/5 hover:bg-cyan-500/20 text-cyan-300 border border-white/10 transition-colors cursor-pointer">
+                💡 Ide Quest Produktif
+            </button>
+            <button class="chat-chip text-[10px] whitespace-nowrap px-2.5 py-1 rounded-full bg-white/5 hover:bg-cyan-500/20 text-cyan-300 border border-white/10 transition-colors cursor-pointer">
+                🔥 Tips Jaga Streak
+            </button>
+            <button class="chat-chip text-[10px] whitespace-nowrap px-2.5 py-1 rounded-full bg-white/5 hover:bg-cyan-500/20 text-cyan-300 border border-white/10 transition-colors cursor-pointer">
+                ⚡ Evaluasi Hari Ini
+            </button>
+        </div>
+
+        <!-- Chat Input Form -->
+        <div class="p-3 border-t border-white/10 bg-slate-950/40 rounded-b-3xl">
+            <form id="chatForm" class="flex items-center gap-2">
+                <input type="text" id="chatInput" placeholder="Tanya sesuatu ke Gemini AI..." class="flex-1 bg-slate-900/90 border border-white/10 rounded-xl py-2.5 px-3.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 font-sans" autocomplete="off">
+                <button type="submit" id="sendChatBtn" class="p-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 text-white hover:opacity-90 transition-opacity disabled:opacity-50 cursor-pointer">
+                    <i data-lucide="send" class="w-4 h-4 pointer-events-none"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Floating Trigger Button (Independent) -->
+    <button id="toggleChatBtn" class="fixed bottom-4 right-4 z-50 w-14 h-14 rounded-2xl bg-gradient-to-tr from-cyan-500 via-indigo-500 to-fuchsia-500 text-white flex items-center justify-center shadow-xl shadow-cyan-500/30 hover:shadow-cyan-500/50 transform hover:-translate-y-1 active:translate-y-0 transition-all duration-300 ring-2 ring-white/20 cursor-pointer">
+        <i data-lucide="message-square-code" class="w-6 h-6 pointer-events-none"></i>
+    </button>
+
+    <!-- Toast Notification Banner -->
+    <div id="toastContainer" class="fixed top-5 right-5 z-50 space-y-2 pointer-events-none"></div>
+
+    <!-- Scripts (ES Modules) -->
+    <script type="module" src="./js/app.js"></script>
+</body>
+</html>
